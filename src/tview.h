@@ -15,9 +15,25 @@ public:
 
     virtual void clear();
     virtual void add(const std::string& text);
+
+    ftxui::Element get_top();
 private:
-    ftxui::Element top_;
     std::vector<ftxui::Element> elements_;
 };
+
+class RawView: public cppagent::IView
+{
+public:
+    RawView();
+    virtual ~RawView();
+
+    virtual void clear();
+    virtual void add(const std::string& text);
+
+    ftxui::Element get_top();
+private:
+    std::vector<ftxui::Element> elements_;
+};
+
 } // namespace view
 #endif //INC_TVIEW_H_

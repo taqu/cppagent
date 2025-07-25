@@ -3,7 +3,10 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <string>
-#include "tview.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 std::string Code(ftxui::Event event)
 {
@@ -16,63 +19,64 @@ std::string Code(ftxui::Event event)
 
 int main()
 {
-    tview::TView tview;
-
     using namespace ftxui;
-    auto screenInteractive = ScreenInteractive::TerminalOutput();
-
-    std::vector<Event> keys;
-
-    auto left_column = Renderer([&] {
-        Elements children = {
-            text("Codes"),
-            separator(),
-        };
-        for(size_t i = std::max(0, (int)keys.size() - 20); i < keys.size(); ++i) {
-            children.push_back(text(Code(keys[i])));
+    Component messages;
+    std::string prompt;
+    auto send_button_callback = [&]{
+        if(prompt.empty()){
+            return;
         }
-        Element e = emptyElement();
-        return vbox(children);
-    });
 
-    auto right_column = Renderer([&] {
-        Elements children = {
-            text("Event"),
-            separator(),
-        };
-        for(size_t i = std::max(0, (int)keys.size() - 20); i < keys.size(); ++i) {
-            children.push_back(text(keys[i].DebugString()));
-        }
-        return vbox(children);
-    });
+        Component message = Renderer([=]{
+            return hbox(text(prompt));
+        });
+        messages->Add(message);
+        prompt.clear();
+    };
 
-    int split_size = 40;
-    auto component = ResizableSplitLeft(left_column, right_column, &split_size);
-    component |= border;
+    Component component = Container::Vertical({}); 
 
-    std::string text;
-    Component input_text = Input(&text, "text");
+    Component input_text = Input(&prompt, "text", InputOption::Default());
     input_text |= CatchEvent([&](Event event) {
         if(event.is_mouse() || event.is_cursor_position() || event.is_cursor_shape()){
             return false;
         }
         if(Event::Return == event){
-            return true;
+            SHORT shift = GetKeyState(VK_SHIFT);
+            if(shift == 0) {
+                send_button_callback();
+                input_text->TakeFocus();
+                return true;
+            }
         }
-        keys.push_back(event);
         return false;
     });
 
-    auto container = Container::Vertical({component, input_text});
+    Component send_button = Button("Send", send_button_callback);
+    Component input_composition = Container::Horizontal({input_text, send_button});
+    Component input_renderer = Renderer(input_composition, [&]{
+        return hbox({input_text->Render(), send_button->Render()});
+    });
 
-    //component |= CatchEvent([&](Event event) {
-    //    keys.push_back(event);
-    //    return false;
-    //});
+    std::vector<Component> message_components;
+    messages = Container::Vertical(message_components);
 
-    Loop loop(&screenInteractive, container);
-    while(!loop.HasQuitted()) {
-        loop.RunOnce();
-    }
+    Component main_composition = Container::Vertical({
+        messages,
+        input_renderer,
+    });
+    Component main_renderer = Renderer(main_composition, [&] {
+        return vbox({
+            messages->Render() | vscroll_indicator | frame | yflex | border,
+            input_renderer->Render() | border,
+        });
+    });
+
+    ScreenInteractive screenInteractive = ScreenInteractive::Fullscreen();
+    screenInteractive.Loop(main_renderer);
+    //Loop loop(&screenInteractive, main_renderer);
+    //while(!loop.HasQuitted()) {
+    //    loop.RunOnce();
+    //}
     return 0;
 }
