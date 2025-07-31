@@ -15,6 +15,13 @@ include_directories(AFTER "${THIRDPARTY_ROOT}/")
 find_package("ftxui" HINTS "${THIRDPARTY_ROOT}/ftxui" REQUIRED)
 message("ftxui ${ftxui_FOUND} ${ftxui_ROOT_DIR} ${ftxui_INCLUDE_DIRS} ${ftxui_LIBRARIES}")
 
+#######################################################
+include_directories(AFTER ${THIRDPARTY_ROOT}/libcurl/include)
+link_directories(AFTER ${THIRDPARTY_ROOT}/libcurl/lib)
+
+add_library(LIBCURL MODULE IMPORTED)
+set_target_properties(LIBCURL PROPERTIES IMPORTED_LOCATION_DEBUG "libcurl_a.lib" IMPORTED_LOCATION_RELEASE "libcurl_a.lib")
+
 ########################################################################
 # Sources
 set(HEADERS
@@ -47,7 +54,7 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /Zi /Ob0 /Od /RTC1 /Gy /GR- /GS /Gm-")
     set(CMAKE_CXX_FLAGS_RELEASE "/MD /O2 /GL /GR- /DNDEBUG")
-    target_link_libraries(${PROJECT_NAME} Ws2_32.lib ftxui::screen ftxui::dom ftxui::component)
+    target_link_libraries(${PROJECT_NAME} Ws2_32.lib ftxui::screen ftxui::dom ftxui::component LIBCURL)
 
 elseif(UNIX)
     set(DEFAULT_CXX_FLAGS "-Wall -O0 -g -std=c++20 -std=gnu++20 -march=native")

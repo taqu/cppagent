@@ -4,21 +4,21 @@
 #include <ftxui/dom/elements.hpp>
 #include <string>
 
+#include <curl/curl.h>
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
-std::string Code(ftxui::Event event)
-{
-    std::string codes;
-    for(auto& it: event.input()) {
-        codes += " " + std::to_string((unsigned int)it);
-    }
-    return codes;
-}
-
 int main()
 {
+    {
+        curl_global_init(CURL_GLOBAL_ALL);
+        CURL* curl = curl_easy_init();
+        curl_easy_cleanup(curl);
+        curl = nullptr;
+        curl_global_cleanup();
+    }
     using namespace ftxui;
     Component messages;
     std::string prompt;
