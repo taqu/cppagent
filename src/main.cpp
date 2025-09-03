@@ -1,10 +1,14 @@
+#include <stdio.h>
+#include <string>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/loop.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
-#include <string>
-
-#include <curl/curl.h>
+#include "httplib.h"
+#include "settings.h"
+#include "tool.h"
+#include "stringbuilder.h"
+#include "openaiprovider.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -13,12 +17,38 @@
 int main()
 {
     {
-        curl_global_init(CURL_GLOBAL_ALL);
-        CURL* curl = curl_easy_init();
-        curl_easy_cleanup(curl);
-        curl = nullptr;
-        curl_global_cleanup();
+        httplib::Client cli("https://yahoo.com");
+        cli.set_follow_location(true);
+        auto res = cli.Get("/news", {{"Accept-Encoding", "gzip"}});
+        printf("%d %s\n", res->status, res->body.c_str());
     }
+    using namespace cppagent;
+    {
+        Settings settings;
+        settings.load("../settings.toml");
+    }
+    {
+        StringBuilder<> stringBuilder;
+        std::string empty = stringBuilder.toString();
+        stringBuilder.print("test%d", 1);
+        std::string s = stringBuilder.toString();
+        printf("%zd %s\n", s.length(), s.c_str());
+    }
+    {
+        Tools tools;
+        tools.add("../default_tools.toml");
+    }
+    /*{
+        OpenAIProvider provider("http://192.168.128.147:9090");
+        IAPIProvider::ChatCompletionRequest request;
+        request.messages_.push_back({"system", "You are a helpful assistant."});
+		request.messages_.push_back({"user", "Hello!!"});
+		IAPIProvider::ChatCompletionResponse response = provider.generate(request);
+    }*/
+    {
+    }
+
+#if 0
     using namespace ftxui;
     Component messages;
     std::string prompt;
@@ -78,5 +108,6 @@ int main()
     //while(!loop.HasQuitted()) {
     //    loop.RunOnce();
     //}
+    #endif
     return 0;
 }

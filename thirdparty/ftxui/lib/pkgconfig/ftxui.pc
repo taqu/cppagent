@@ -1,9 +1,0 @@
-prefix="D:/MyDocuments/Projects/FTXUI/install"
-libdir="D:/MyDocuments/Projects/FTXUI/install/lib"
-includedir="D:/MyDocuments/Projects/FTXUI/install/include"
-
-Name: ftxui
-Description: C++ Functional Terminal User Interface.
-Version: 6.1.9
-Cflags: -I${includedir}
-Libs: -L${libdir} -lftxui-component -lftxui-dom -lftxui-screen

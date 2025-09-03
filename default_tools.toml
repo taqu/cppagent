@@ -1,0 +1,31 @@
+# ReadFile
+[[tools]]
+type="function"
+name="ReadFile"
+description="Reads and returns the content of a specified file."
+strict=true
+[tools.parameters]
+type="object"
+required=["path"]
+[tools.parameters.properties.path]
+type="string"
+description="The absolute path to the file to read."
+
+# ls
+[[tools]]
+type="function"
+name="list"
+description="Lists the names of files and subdirectories directory within a specified directory path."
+strict=true
+[tools.parameters]
+type="object"
+required=["path"]
+[tools.parameters.properties.path]
+type="string"
+description="The absolute path to the directory to list."
+[tools.parameters.properties.filter]
+type="array"
+description="The file extentions to list."
+[tools.parameters.properties.filter.items]
+type="string"
+

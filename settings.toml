@@ -1,0 +1,3 @@
+[console]
+duration=250 # main loop sleep time in milli-seconds
+
