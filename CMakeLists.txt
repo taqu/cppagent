@@ -36,9 +36,36 @@ else()
 endif()
 
 #######################################################
-# FTXUI
-find_package("ftxui" HINTS "${THIRDPARTY_ROOT}/ftxui" REQUIRED)
-message("ftxui ${ftxui_FOUND} ${ftxui_ROOT_DIR} ${ftxui_INCLUDE_DIRS} ${ftxui_COMPONENTS}")
+# replxx
+set(REPLXX_ROOT ${THIRDPARTY_ROOT}/replxx)
+set(REPLXX_INCLUDE ${REPLXX_ROOT}/include)
+set(REPLXX_LIB ${REPLXX_ROOT}/lib)
+
+include_directories(AFTER ${REPLXX_INCLUDE})
+link_directories(AFTER ${REPLXX_LIB})
+
+add_library(REPLXX MODULE IMPORTED)
+if(MSVC)
+    set_target_properties(REPLXX PROPERTIES IMPORTED_LOCATION_DEBUG "replxx-static-d.lib" IMPORTED_LOCATION_RELEASE "replxx-static.lib")
+else()
+    set_target_properties(REPLXX PROPERTIES IMPORTED_LOCATION "replxx-static-d.a" IMPORTED_LOCATION_RELEASE "replxx-static.a")
+endif()
+
+#######################################################
+# lwlog
+set(LWLOG_ROOT ${THIRDPARTY_ROOT}/lwlog)
+set(LWLOG_INCLUDE ${LWLOG_ROOT}/include)
+set(LWLOG_LIB ${LWLOG_ROOT}/lib)
+
+include_directories(AFTER ${LWLOG_INCLUDE})
+link_directories(AFTER ${LWLOG_LIB})
+
+add_library(LWLOG MODULE IMPORTED)
+if(MSVC)
+    set_target_properties(LWLOG PROPERTIES IMPORTED_LOCATION_DEBUG "lwlog_libd.lib" IMPORTED_LOCATION_RELEASE "lwlog_lib.lib")
+else()
+    set_target_properties(LWLOG PROPERTIES IMPORTED_LOCATION "lwlog_libd.a" IMPORTED_LOCATION_RELEASE "lwlog_lib.a")
+endif()
 
 #######################################################
 # OpenSSL
@@ -76,6 +103,7 @@ set(HEADERS
     "${HEADER_ROOT}/context.h"
     "${HEADER_ROOT}/apiprovider.h"
     "${HEADER_ROOT}/openaiprovider.h"
+    "${HEADER_ROOT}/terminal.h"
     "${HEADER_ROOT}/agent.h"
     "${HEADER_ROOT}/cppagent.h")
 set(SOURCES
@@ -89,6 +117,7 @@ set(SOURCES
     "${SOURCE_ROOT}/context.cpp"
     "${SOURCE_ROOT}/apiprovider.cpp"
     "${SOURCE_ROOT}/openaiprovider.cpp"
+    "${SOURCE_ROOT}/terminal.cpp"
     "${SOURCE_ROOT}/agent.cpp"
     "${SOURCE_ROOT}/cppagent.cpp"
     "${SOURCE_ROOT}/main.cpp")
@@ -113,11 +142,12 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS}")
     set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /Zi /Ob0 /Od /RTC1 /Gy /GR- /GS /Gm-")
     set(CMAKE_CXX_FLAGS_RELEASE "/MD /O2 /GL /GR- /DNDEBUG")
-    target_link_libraries(${PROJECT_NAME} Ws2_32.lib MIMALLOC ftxui::screen ftxui::dom ftxui::component OpenSSL::Crypto OpenSSL::SSL ZLIB)
+    target_link_libraries(${PROJECT_NAME} Ws2_32.lib MIMALLOC OpenSSL::Crypto OpenSSL::SSL ZLIB REPLXX LWLOG)
 
 elseif(UNIX)
     set(DEFAULT_CXX_FLAGS "-Wall -O0 -g -DCPPHTTPLIB_OPENSSL_SUPPORT -DCPPHTTPLIB_ZLIB_SUPPORT -std=c++20 -std=gnu++20 -march=native")
     set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS}")
+    target_link_libraries(${PROJECT_NAME} MIMALLOC OpenSSL::Crypto OpenSSL::SSL ZLIB REPLXX LWLOG)
 elseif(APPLE)
 endif()
 
