@@ -5,31 +5,28 @@
 #include "tool.h"
 #include "stringbuilder.h"
 #include "openaiprovider.h"
+#include "terminal.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
-
-int main()
+int main(void)
 {
-    {
+    /*{
         httplib::Client cli("https://yahoo.com");
         cli.set_follow_location(true);
         auto res = cli.Get("/news", {{"Accept-Encoding", "gzip"}});
         printf("%d %s\n", res->status, res->body.c_str());
-    }
+    }*/
     using namespace cppagent;
     {
         Settings settings;
         settings.load("../settings.toml");
     }
-    {
+    /*{
         StringBuilder<> stringBuilder;
         std::string empty = stringBuilder.toString();
         stringBuilder.print("test%d", 1);
         std::string s = stringBuilder.toString();
         printf("%zd %s\n", s.length(), s.c_str());
-    }
+    }*/
     {
         Tools tools;
         tools.add("../default_tools.toml");
@@ -42,6 +39,15 @@ int main()
 		IAPIProvider::ChatCompletionResponse response = provider.generate(request);
     }*/
     {
+        Terminal terminal;
+        Vector size = terminal.getSize();
+        Vector position = terminal.getCursorPosition();
+        for(;;){
+            fputs(">", stdout);
+            std::string line = terminal.readline();
+            terminal << Terminal::CursorPosition{0,position.y_+1} << Terminal::EraseLine{Erase::Entire} << Terminal::flush;
+            terminal << line << Terminal::flush;
+        }
     }
     return 0;
 }

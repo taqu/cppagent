@@ -1,12 +1,12 @@
-#include "console.h"
+#include "terminal.h"
 #include <algorithm>
 #include <io.h>
 #include <sstream>
 #include <stdio.h>
 
-namespace console
+namespace cppagent
 {
-bool Console::IsTTY()
+bool Terminal::IsTTY()
 {
 #ifdef _WIN32
     return _isatty(_fileno(stdout));
@@ -15,7 +15,7 @@ bool Console::IsTTY()
 #endif
 }
 
-Console::Console()
+Terminal::Terminal()
 {
 #ifdef _WIN32
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -29,11 +29,11 @@ Console::Console()
     rx_.install_window_change_handler();
 }
 
-Console::~Console()
+Terminal::~Terminal()
 {
 }
 
-std::string Console::readline(uint32_t wait, uint32_t timeout)
+std::string Terminal::readline(uint32_t wait, uint32_t timeout)
 {
     ss_.str("");
 #if 0
@@ -101,7 +101,7 @@ READLINE_END:
     const char* cinput = nullptr;
     for(;;) {
         do {
-            cinput = rx_.input(">");
+            cinput = rx_.input("");
         } while((cinput == nullptr) && (errno == EAGAIN));
         if(nullptr != cinput) {
             ss_ << cinput;
@@ -111,7 +111,7 @@ READLINE_END:
     return ss_.str();
 }
 
-Vector Console::getTerminalSize() const
+Vector Terminal::getSize() const
 {
 #ifdef _WIN32
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -137,7 +137,7 @@ Vector Console::getTerminalSize() const
 #endif
 }
 
-Vector Console::getCursorPosition() const
+Vector Terminal::getCursorPosition() const
 {
 #ifdef _WIN32
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -198,114 +198,87 @@ Vector Console::getCursorPosition() const
 #endif
 }
 
-Console& operator<<(Console& console, const Console::Endl&)
+Terminal& operator<<(Terminal& terminal, const Terminal::Endl&)
 {
     fputc('\n', stdout);
-    return console;
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::Flush&)
+Terminal& operator<<(Terminal& terminal, const Terminal::Flush&)
 {
     fflush(stdout);
-    return console;
+    return terminal;
 }
 
-Console& operator<<(Console& console, const char* str)
+Terminal& operator<<(Terminal& terminal, const char* str)
 {
     fputs(str, stdout);
-    return console;
+    return terminal;
 }
 
-Console& operator<<(Console& console, const std::string& str)
+Terminal& operator<<(Terminal& terminal, const std::string& str)
 {
     fputs(str.c_str(), stdout);
-    return console;
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::SGR& sgr)
+Terminal& operator<<(Terminal& terminal, int8_t x)
 {
-    fputs(sgr.code_, stdout);
-    return console;
+    fprintf(stdout, "%d", x);
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::C216 rgb)
+Terminal& operator<<(Terminal& terminal, int16_t x)
 {
-    int32_t c = std::clamp(16 + 36 * rgb.r_ + 6 * rgb.g_ + rgb.b_, 16, 231);
-    char buffer[16];
-    sprintf(buffer, "\033[38;5;%dm", c);
-    fputs(buffer, stdout);
-    return console;
+    fprintf(stdout, "%d", x);
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::Gray gray)
+Terminal& operator<<(Terminal& terminal, int32_t x)
 {
-    int32_t n = std::clamp(232 + gray.n_, 232, 255);
-    char buffer[16];
-    sprintf(buffer, "\033[38;5;%dm", n);
-    fputs(buffer, stdout);
-    return console;
+    fprintf(stdout, "%d", x);
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::CursorUp pos)
+Terminal& operator<<(Terminal& terminal, int64_t x)
 {
-    char buffer[16];
-    sprintf(buffer, "\033[%dA", pos.n_);
-    return console;
+    fprintf(stdout, "%lld", x);
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::CursorDown pos)
+Terminal& operator<<(Terminal& terminal, uint8_t x)
 {
-    char buffer[16];
-    sprintf(buffer, "\033[%dB", pos.n_);
-    return console;
+    fprintf(stdout, "%d", x);
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::CursorForward pos)
+Terminal& operator<<(Terminal& terminal, uint16_t x)
 {
-    char buffer[16];
-    sprintf(buffer, "\033[%dC", pos.n_);
-    return console;
+    fprintf(stdout, "%d", x);
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::CursorBack pos)
+Terminal& operator<<(Terminal& terminal, uint32_t x)
 {
-    char buffer[16];
-    sprintf(buffer, "\033[%dD", pos.n_);
-    return console;
+    fprintf(stdout, "%d", x);
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::CursorNextLine pos)
+Terminal& operator<<(Terminal& terminal, uint64_t x)
 {
-    char buffer[16];
-    sprintf(buffer, "\033[%dE", pos.n_);
-    return console;
+    fprintf(stdout, "%lld", x);
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::CursorPreviousLine pos)
+Terminal& operator<<(Terminal& terminal, float x)
 {
-    char buffer[16];
-    sprintf(buffer, "\033[%dF", pos.n_);
-    return console;
+    fprintf(stdout, "%f", x);
+    return terminal;
 }
 
-Console& operator<<(Console& console, const Console::CursorPosition pos)
+Terminal& operator<<(Terminal& terminal, double x)
 {
-    char buffer[16];
-    sprintf(buffer, "\033[%d;%dH", pos.n_, pos.m_);
-    return console;
+    fprintf(stdout, "%f", x);
+    return terminal;
 }
-
-Console& operator<<(Console& console, const Console::EraseDisplay pos)
-{
-    char buffer[16];
-    sprintf(buffer, "\033[%dJ", static_cast<int32_t>(pos.n_));
-    return console;
-}
-
-Console& operator<<(Console& console, const Console::EraseLine pos)
-{
-    char buffer[16];
-    sprintf(buffer, "\033[%dK", static_cast<int32_t>(pos.n_));
-    return console;
-}
-} // namespace console
+} // namespace cppagent

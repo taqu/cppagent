@@ -1,31 +1,38 @@
-#ifndef INC_CONSOLE_H_
-#define INC_CONSOLE_H_
+#ifndef INC_CPPAGENT_TERMINAL_H_
+#define INC_CPPAGENT_TERMINAL_H_
 #include <cstdint>
 #include <sstream>
 #include <string>
 
 #if defined(_WIN32)
-        #include <Windows.h>
-        #include <conio.h>
+#    include <Windows.h>
+#    include <conio.h>
 #endif
 
 #if defined(__unix__) || defined(__linux__)
-        #include <termios.h>
-        #include <unistd.h>
-        #include <sys/ioctl.h>
+#    include <sys/ioctl.h>
+#    include <termios.h>
+#    include <unistd.h>
 #endif
 
 #include <replxx.hxx>
 
-namespace console
+namespace cppagent
 {
-    struct Vector
+struct Vector
 {
-        int32_t x_;
-        int32_t y_;
+    int32_t x_;
+    int32_t y_;
 };
 
-class Console
+enum class Erase : uint8_t
+    {
+        End = 0,
+        Begin = 1,
+        Entire = 2,
+    };
+
+class Terminal
 {
 public:
     // Select Graphic Rendition
@@ -85,45 +92,38 @@ public:
 
     struct CursorUp
     {
-        uint8_t n_;
+        int32_t n_;
     };
 
     struct CursorDown
     {
-        uint8_t n_;
+        int32_t n_;
     };
 
     struct CursorForward
     {
-        uint8_t n_;
+        int32_t n_;
     };
 
     struct CursorBack
     {
-        uint8_t n_;
+        int32_t n_;
     };
 
     struct CursorNextLine
     {
-        uint8_t n_;
+        int32_t n_;
     };
 
     struct CursorPreviousLine
     {
-        uint8_t n_;
+        int32_t n_;
     };
 
     struct CursorPosition
     {
-        uint8_t n_;
-        uint8_t m_;
-    };
-
-    enum class Erase : uint8_t
-    {
-        End=0,
-        Begin=1,
-        Entire=2,
+        int32_t n_;
+        int32_t m_;
     };
 
     struct EraseDisplay
@@ -132,21 +132,22 @@ public:
     };
 
     struct EraseLine
-	{
-		Erase n_;
-	};
+    {
+        Erase n_;
+    };
 
     static bool IsTTY();
-    Console();
-    ~Console();
+    Terminal();
+    ~Terminal();
 
     std::string readline(uint32_t wait = 1000, uint32_t timeout = 10000);
 
-    Vector getTerminalSize() const;
+    Vector getSize() const;
     Vector getCursorPosition() const;
+
 private:
-    Console(const Console&) = delete;
-    Console& operator=(const Console&) = delete;
+    Terminal(const Terminal&) = delete;
+    Terminal& operator=(const Terminal&) = delete;
 
     std::stringstream ss_;
     replxx::Replxx rx_;
@@ -155,25 +156,35 @@ private:
 #endif
 };
 
-Console& operator<<(Console& console, const Console::Endl& code);
-Console& operator<<(Console& console, const Console::Flush& code);
+Terminal& operator<<(Terminal& terminal, const Terminal::Endl& code);
+Terminal& operator<<(Terminal& terminal, const Terminal::Flush& code);
 
-Console& operator<<(Console& console, const char* str);
-Console& operator<<(Console& console, const std::string& str);
+Terminal& operator<<(Terminal& terminal, const char* str);
+Terminal& operator<<(Terminal& terminal, const std::string& str);
 
-Console& operator<<(Console& console, const Console::SGR& sgr);
-Console& operator<<(Console& console, const Console::C216 rgb);
-Console& operator<<(Console& console, const Console::Gray gray);
+Terminal& operator<<(Terminal& terminal, const Terminal::SGR& sgr);
+Terminal& operator<<(Terminal& terminal, const Terminal::C216 rgb);
+Terminal& operator<<(Terminal& terminal, const Terminal::Gray gray);
 
-Console& operator<<(Console& console, const Console::CursorUp pos);
-Console& operator<<(Console& console, const Console::CursorDown pos);
-Console& operator<<(Console& console, const Console::CursorForward pos);
-Console& operator<<(Console& console, const Console::CursorBack pos);
-Console& operator<<(Console& console, const Console::CursorNextLine pos);
-Console& operator<<(Console& console, const Console::CursorPreviousLine pos);
-Console& operator<<(Console& console, const Console::CursorPosition pos);
-Console& operator<<(Console& console, const Console::EraseDisplay pos);
-Console& operator<<(Console& console, const Console::EraseLine pos);
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorUp pos);
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorDown pos);
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorForward pos);
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorBack pos);
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorNextLine pos);
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorPreviousLine pos);
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorPosition pos);
+Terminal& operator<<(Terminal& terminal, const Terminal::EraseDisplay pos);
+Terminal& operator<<(Terminal& terminal, const Terminal::EraseLine pos);
 
-} // namespace console
-#endif // INC_CONSOLE_H_
+Terminal& operator<<(Terminal& terminal, int8_t x);
+Terminal& operator<<(Terminal& terminal, int16_t x);
+Terminal& operator<<(Terminal& terminal, int32_t x);
+Terminal& operator<<(Terminal& terminal, int64_t x);
+Terminal& operator<<(Terminal& terminal, uint8_t x);
+Terminal& operator<<(Terminal& terminal, uint16_t x);
+Terminal& operator<<(Terminal& terminal, uint32_t x);
+Terminal& operator<<(Terminal& terminal, uint64_t x);
+Terminal& operator<<(Terminal& terminal, float x);
+Terminal& operator<<(Terminal& terminal, double x);
+} // namespace cppagent
+#endif // INC_CPPAGENT_TERMINAL_H_
