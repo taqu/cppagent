@@ -27,14 +27,17 @@ struct Vector
 
 enum class Erase : uint8_t
     {
-        End = 0,
-        Begin = 1,
-        Entire = 2,
+        End = 0, // clear from cursor to the end
+        Begin = 1, // clear from cursor to beginning
+        Entire = 2, // clear entire
+        EntireBuffer = 3, // clear entire and delete all lines in scrollback buffer, only for Erase in Display
     };
 
 class Terminal
 {
 public:
+    inline static constexpr size_t BufferSize = 16;
+
     // Select Graphic Rendition
     struct SGR
     {
@@ -75,7 +78,19 @@ public:
         uint8_t b_;
     };
 
+    struct C216BG
+    {
+        uint8_t r_;
+        uint8_t g_;
+        uint8_t b_;
+    };
+
     struct Gray
+    {
+        uint8_t n_;
+    };
+
+    struct GrayBG
     {
         uint8_t n_;
     };
@@ -122,8 +137,8 @@ public:
 
     struct CursorPosition
     {
-        int32_t n_;
-        int32_t m_;
+        int32_t n_; // row
+        int32_t m_; // column
     };
 
     struct EraseDisplay
@@ -164,7 +179,9 @@ Terminal& operator<<(Terminal& terminal, const std::string& str);
 
 Terminal& operator<<(Terminal& terminal, const Terminal::SGR& sgr);
 Terminal& operator<<(Terminal& terminal, const Terminal::C216 rgb);
+Terminal& operator<<(Terminal& terminal, const Terminal::C216BG rgb);
 Terminal& operator<<(Terminal& terminal, const Terminal::Gray gray);
+Terminal& operator<<(Terminal& terminal, const Terminal::GrayBG gray);
 
 Terminal& operator<<(Terminal& terminal, const Terminal::CursorUp pos);
 Terminal& operator<<(Terminal& terminal, const Terminal::CursorDown pos);

@@ -42,11 +42,17 @@ int main(void)
         Terminal terminal;
         Vector size = terminal.getSize();
         Vector position = terminal.getCursorPosition();
+        {
+            terminal << Terminal::Bold << Terminal::Red << "Bold Red" << Terminal::Reset << Terminal::endl;
+            terminal << Terminal::CursorPosition{0,position.y_} << Terminal::EraseLine{Erase::Entire} << Terminal::flush;
+        }
         for(;;){
-            fputs(">", stdout);
-            std::string line = terminal.readline();
-            terminal << Terminal::CursorPosition{0,position.y_+1} << Terminal::EraseLine{Erase::Entire} << Terminal::flush;
-            terminal << line << Terminal::flush;
+            terminal << Terminal::CursorPosition{position.y_,0} << ">";
+            std::string line;
+            std::cin >> line;
+            //std::string line = terminal.readline();
+            terminal << Terminal::CursorPosition{position.y_,0} << Terminal::EraseLine{Erase::Entire};
+            terminal << Terminal::CursorPosition{position.y_+1,0} << Terminal::EraseLine{Erase::Entire} << line << Terminal::flush;
         }
     }
     return 0;

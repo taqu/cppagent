@@ -143,16 +143,16 @@ Vector Terminal::getCursorPosition() const
     HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
     if(nullptr == handle) {
         // fprintf(stderr, "[ERROR] Couldn't output handle\n");
-        return {0, 0};
+        return {1, 1};
     }
 
     CONSOLE_SCREEN_BUFFER_INFO info;
     if(0 == GetConsoleScreenBufferInfo(handle, &info)) {
         // fprintf(stderr, "[ERROR] Couldn't get screen buffer info\n");
-        return {0, 0};
+        return {1, 1};
     }
 
-    return {info.dwCursorPosition.X, info.dwCursorPosition.Y};
+    return {info.dwCursorPosition.X+1, info.dwCursorPosition.Y+1};
 #else
     struct termios old_attr, new_attr;
 
@@ -219,6 +219,106 @@ Terminal& operator<<(Terminal& terminal, const char* str)
 Terminal& operator<<(Terminal& terminal, const std::string& str)
 {
     fputs(str.c_str(), stdout);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::SGR& sgr)
+{
+    fputs(sgr.code_, stdout);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::C216 rgb)
+{
+    char buffer[Terminal::BufferSize] =  {};
+    int32_t c = 16 + 36 * rgb.r_ + 6 * rgb.g_ + rgb.b_;
+    c = std::clamp(c, 0, 255);
+    snprintf(buffer, Terminal::BufferSize, "\033[38;5;%dm", c);
+    fputs(buffer, stdout);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::C216BG rgb)
+{
+    char buffer[Terminal::BufferSize] =  {};
+    int32_t c = 16 + 36 * rgb.r_ + 6 * rgb.g_ + rgb.b_;
+    c = std::clamp(c, 0, 255);
+    snprintf(buffer, Terminal::BufferSize, "\033[48;5;%dm", c);
+    fputs(buffer, stdout);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::Gray gray)
+{
+    char buffer[Terminal::BufferSize] =  {};
+    int32_t c = 232 + gray.n_;
+    c = std::clamp(c, 232, 255);
+    snprintf(buffer, Terminal::BufferSize, "\033[38;5;%dm", c);
+    fputs(buffer, stdout);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::GrayBG gray)
+{
+    char buffer[Terminal::BufferSize] =  {};
+    int32_t c = 232 + gray.n_;
+    c = std::clamp(c, 232, 255);
+    snprintf(buffer, Terminal::BufferSize, "\033[48;5;%dm", c);
+    fputs(buffer, stdout);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorUp pos)
+{
+    fprintf(stdout, "\033[%dA", pos.n_);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorDown pos)
+{
+    fprintf(stdout, "\033[%dB", pos.n_);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorForward pos)
+{
+    fprintf(stdout, "\033[%dC", pos.n_);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorBack pos)
+{
+    fprintf(stdout, "\033[%dD", pos.n_);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorNextLine pos)
+{
+    fprintf(stdout, "\033[%dE", pos.n_);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorPreviousLine pos)
+{
+    fprintf(stdout, "\033[%dF", pos.n_);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::CursorPosition pos)
+{
+    fprintf(stdout, "\033[%d;%dH", pos.n_, pos.m_);
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::EraseDisplay pos)
+{
+    fprintf(stdout, "\033[%dJ", static_cast<int32_t>(pos.n_));
+    return terminal;
+}
+
+Terminal& operator<<(Terminal& terminal, const Terminal::EraseLine pos)
+{
+    fprintf(stdout, "\033[%dK", static_cast<int32_t>(pos.n_));
     return terminal;
 }
 
