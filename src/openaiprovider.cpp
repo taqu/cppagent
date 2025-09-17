@@ -53,7 +53,7 @@ void OpenAIProvider::setToken(const std::string& token)
     token_ = token;
 }
 
-const std::string OpenAIProvider::path_ = "/v1/chat/completions";
+const std::string OpenAIProvider::path_ = "/chat/completions";
 const std::string OpenAIProvider::content_type_ = "application/json";
 
 IAPIProvider::ChatCompletionResponse OpenAIProvider::generate(const ChatCompletionRequest& request, const Tools& tools, const Settings& settings)

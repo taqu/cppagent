@@ -33,71 +33,9 @@ Terminal::~Terminal()
 {
 }
 
-std::string Terminal::readline(uint32_t wait, uint32_t timeout)
+std::string Terminal::readline(Vector pos, int32_t wait, int32_t timeout)
 {
     ss_.str("");
-#if 0
-    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    uint64_t acc = 0;
-    static constexpr DWORD Size = 64;
-    INPUT_RECORD records[Size] = {};
-    char utf8[8] = {};
-    while(acc < static_cast<uint64_t>(timeout)){
-        DWORD result = WaitForSingleObject(handle, wait);
-        switch(result){
-            case WAIT_ABANDONED:
-                return;
-            case WAIT_OBJECT_0:
-                acc = 0;
-                break;
-            case WAIT_TIMEOUT:
-                acc += wait;
-                continue;
-            default:
-                return;
-        }
-        DWORD count = 0;
-        if(0 == ReadConsoleInput(handle, records, Size, &count)){
-            continue;
-        }
-        for(uint32_t i=0; i<count; ++i){
-            switch(records[i].EventType){
-            case FOCUS_EVENT:
-                break;
-            case KEY_EVENT:{
-                if(records[i].Event.KeyEvent.bKeyDown){
-					if(records[i].Event.KeyEvent.wVirtualKeyCode == VK_RETURN){
-                        if((records[i].Event.KeyEvent.dwControlKeyState&SHIFT_PRESSED) == 0){
-                            goto READLINE_END;
-                        }
-                        ss_ << '\n';
-                        break;
-                    } else if(0 != records[i].Event.KeyEvent.uChar.UnicodeChar && iswprint(records[i].Event.KeyEvent.uChar.UnicodeChar)) {
-                        int32_t len = toUtf8(utf8, records[i].Event.KeyEvent.uChar.UnicodeChar);
-                        fputwc(records[i].Event.KeyEvent.uChar.UnicodeChar, stdout);
-                        fflush(stdout);
-                        utf8[len] = '\0';
-                        //fputs(utf8, stdout);
-                        ss_ << utf8;
-                    }
-				}
-            }
-                break;
-            case MENU_EVENT:
-                break;
-			case MOUSE_EVENT:
-				break;
-			case WINDOW_BUFFER_SIZE_EVENT:
-				break;
-			default:
-				break;
-            }
-        }
-    }
-READLINE_END:
-    ss_<<"\n";
-    //SetConsoleMode(handle, oldMode);
-#endif
     const char* cinput = nullptr;
     for(;;) {
         do {

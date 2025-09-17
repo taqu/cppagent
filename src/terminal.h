@@ -155,7 +155,7 @@ public:
     Terminal();
     ~Terminal();
 
-    std::string readline(uint32_t wait = 1000, uint32_t timeout = 10000);
+    std::string readline(Vector pos, int32_t wait=100, int32_t timeout=1000);
 
     Vector getSize() const;
     Vector getCursorPosition() const;

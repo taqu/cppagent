@@ -52,20 +52,11 @@ else()
 endif()
 
 #######################################################
-# lwlog
-set(LWLOG_ROOT ${THIRDPARTY_ROOT}/lwlog)
-set(LWLOG_INCLUDE ${LWLOG_ROOT}/include)
-set(LWLOG_LIB ${LWLOG_ROOT}/lib)
+# quill
+set(QUILL_ROOT ${THIRDPARTY_ROOT}/quill)
+set(QUILL_INCLUDE ${QUILL_ROOT}/include)
 
-include_directories(AFTER ${LWLOG_INCLUDE})
-link_directories(AFTER ${LWLOG_LIB})
-
-add_library(LWLOG MODULE IMPORTED)
-if(MSVC)
-    set_target_properties(LWLOG PROPERTIES IMPORTED_LOCATION_DEBUG "lwlog_libd.lib" IMPORTED_LOCATION_RELEASE "lwlog_lib.lib")
-else()
-    set_target_properties(LWLOG PROPERTIES IMPORTED_LOCATION "lwlog_libd.a" IMPORTED_LOCATION_RELEASE "lwlog_lib.a")
-endif()
+include_directories(AFTER ${QUILL_INCLUDE})
 
 #######################################################
 # OpenSSL
@@ -88,6 +79,12 @@ else()
     set_target_properties(ZLIB PROPERTIES IMPORTED_LOCATION "zlibstaticd.a" IMPORTED_LOCATION_RELEASE "zlibstatic.a")
 endif()
 
+#######################################################
+# argparse
+set(ARGPARSE_ROOT ${THIRDPARTY_ROOT}/argparse)
+set(ARGPARSE_INCLUDE ${ARGPARSE_ROOT}/include)
+include_directories(AFTER ${ARGPARSE_INCLUDE})
+
 ########################################################################
 # Sources
 set(HEADERS
@@ -98,6 +95,8 @@ set(HEADERS
     "${HEADER_ROOT}/threadpool.h"
     "${HEADER_ROOT}/cppjson.h"
     "${HEADER_ROOT}/cpptoml.h"
+    "${HEADER_ROOT}/log.h"
+    "${HEADER_ROOT}/readline.h"
     "${HEADER_ROOT}/settings.h"
     "${HEADER_ROOT}/tool.h"
     "${HEADER_ROOT}/context.h"
@@ -105,6 +104,7 @@ set(HEADERS
     "${HEADER_ROOT}/openaiprovider.h"
     "${HEADER_ROOT}/terminal.h"
     "${HEADER_ROOT}/agent.h"
+    "${HEADER_ROOT}/app.h"
     "${HEADER_ROOT}/cppagent.h")
 set(SOURCES
     "${SOURCE_ROOT}/utility.cpp"
@@ -112,6 +112,8 @@ set(SOURCES
     "${SOURCE_ROOT}/threadpool.cpp"
     "${SOURCE_ROOT}/cppjson.cpp"
     "${SOURCE_ROOT}/cpptoml.cpp"
+    "${SOURCE_ROOT}/log.cpp"
+    "${SOURCE_ROOT}/readline.cpp"
     "${SOURCE_ROOT}/settings.cpp"
     "${SOURCE_ROOT}/tool.cpp"
     "${SOURCE_ROOT}/context.cpp"
@@ -120,6 +122,7 @@ set(SOURCES
     "${SOURCE_ROOT}/terminal.cpp"
     "${SOURCE_ROOT}/agent.cpp"
     "${SOURCE_ROOT}/cppagent.cpp"
+    "${SOURCE_ROOT}/app.cpp"
     "${SOURCE_ROOT}/main.cpp")
 
 source_group("include" FILES ${HEADERS})
@@ -132,22 +135,25 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
 
 add_executable(${PROJECT_NAME} ${FILES})
+set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 23)
 
 if(MSVC)
-    set(DEFAULT_CXX_FLAGS "/DWIN32 /D_WINDOWS /D_MSBC /DCPPHTTPLIB_OPENSSL_SUPPORT /DCPPHTTPLIB_ZLIB_SUPPORT /DREPLXX_STATIC /W4 /WX- /nologo /fp:precise /arch:AVX2 /Zc:wchar_t /TP /Gd")
+    set(DEFAULT_CXX_FLAGS "/DWIN32 /D_WINDOWS /D_MSBC /DCPPHTTPLIB_OPENSSL_SUPPORT /DCPPHTTPLIB_ZLIB_SUPPORT /DREPLXX_STATIC /DQUILL_DISABLE_NON_PREFIXED_MACROS /W4 /WX- /nologo /fp:precise /arch:AVX2 /Zc:wchar_t /TP /Gd")
     if("1800" VERSION_LESS MSVC_VERSION)
         set(DEFAULT_CXX_FLAGS "${DEFAULT_CXX_FLAGS} /EHsc")
     endif()
 
     set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS}")
-    set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /Zi /Ob0 /Od /RTC1 /Gy /GR- /GS /Gm-")
-    set(CMAKE_CXX_FLAGS_RELEASE "/MD /O2 /GL /GR- /DNDEBUG")
-    target_link_libraries(${PROJECT_NAME} Ws2_32.lib MIMALLOC OpenSSL::Crypto OpenSSL::SSL ZLIB REPLXX LWLOG)
+    set(CMAKE_CXX_FLAGS_DEBUG "/D_DEBUG /MDd /Zi /Ob0 /Od /RTC1 /Gy /GR- /GS /Gm- /DQUILL_COMPILE_ACTIVE_LOG_LEVEL=0")
+    set(CMAKE_CXX_FLAGS_RELEASE "/MD /O2 /GL /GR- /DNDEBUG /DQUILL_COMPILE_ACTIVE_LOG_LEVEL=7")
+    target_link_libraries(${PROJECT_NAME} Ws2_32.lib MIMALLOC OpenSSL::Crypto OpenSSL::SSL ZLIB REPLXX)
 
 elseif(UNIX)
-    set(DEFAULT_CXX_FLAGS "-Wall -O0 -g -DCPPHTTPLIB_OPENSSL_SUPPORT -DCPPHTTPLIB_ZLIB_SUPPORT -std=c++20 -std=gnu++20 -march=native -DREPLXX_STATIC")
+    set(DEFAULT_CXX_FLAGS "-Wall -O0 -g -DCPPHTTPLIB_OPENSSL_SUPPORT -DCPPHTTPLIB_ZLIB_SUPPORT -std=c++20 -std=gnu++20 -march=native -DREPLXX_STATIC -DQUILL_DISABLE_NON_PREFIXED_MACROS")
     set(CMAKE_CXX_FLAGS "${DEFAULT_CXX_FLAGS}")
-    target_link_libraries(${PROJECT_NAME} MIMALLOC OpenSSL::Crypto OpenSSL::SSL ZLIB REPLXX LWLOG)
+    set(CMAKE_CXX_FLAGS_DEBUG "-DDQUILL_COMPILE_ACTIVE_LOG_LEVEL=0")
+    set(CMAKE_CXX_FLAGS_RELEASE "-DDQUILL_COMPILE_ACTIVE_LOG_LEVEL=7")
+    target_link_libraries(${PROJECT_NAME} MIMALLOC OpenSSL::Crypto OpenSSL::SSL ZLIB REPLXX)
 elseif(APPLE)
 endif()
 
