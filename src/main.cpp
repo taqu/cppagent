@@ -23,19 +23,16 @@ int main(void)
     Log::initialize();
     LOG_INFO("test log {}", 1);
     {
+        Terminal terminal;
         ReadLine readLine;
-        bool cancel = false;
-        std::generator<std::tuple<ReadLineState, std::string>> gen = readLine.read(cancel);
+        std::generator<std::tuple<ReadLineState, std::u16string>> gen = readLine.read(terminal, std::make_shared<Cancellation>());
         int32_t count = 0;
         bool end = false;
         for(auto itr = gen.begin(); itr != gen.end() && !end; ++itr) {
-            if(5<=++count){
-                cancel = true;
-            }
-            std::tuple<ReadLineState, std::string> x = *itr;
+            std::tuple<ReadLineState, std::u16string> x = *itr;
             switch(std::get<0>(x)) {
             case ReadLineState::Success:
-                std::cout << "Success: " << std::get<1>(x) << std::endl;
+                std::cout << "Success: " << reinterpret_cast<const char*>(std::get<1>(x).c_str()) << std::endl;
                 end = true;
                 break;
             case ReadLineState::Continue:

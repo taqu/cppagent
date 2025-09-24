@@ -4,7 +4,6 @@
 #include <string>
 #include <generator>
 #include <ranges>
-#include <optional>
 #include <tuple>
 #include <memory>
 #include <atomic>
@@ -25,6 +24,7 @@ enum class ReadLineState
 class Cancellation
 {
 public:
+    Cancellation();
     ~Cancellation();
     static std::shared_ptr<Cancellation> create();
     bool isCancelled() const;
@@ -32,8 +32,6 @@ public:
 private:
     Cancellation(const Cancellation&) = delete;
     Cancellation& operator=(const Cancellation&) = delete;
-
-    Cancellation();
     std::atomic_bool cancelled_;
 };
 
@@ -43,15 +41,15 @@ public:
     ReadLine();
     ~ReadLine();
 
-    std::generator<std::tuple<ReadLineState, std::string>> read(Terminal& terminal, std::shared_ptr<Cancellation> cancel);
+    std::generator<std::tuple<ReadLineState, std::u16string>> read(Terminal& terminal, std::shared_ptr<Cancellation> cancel);
 private:
     ReadLine(const ReadLine&) = delete;
     ReadLine& operator=(const ReadLine&) = delete;
     int32_t x_;
     int32_t y_;
     uint32_t wait_;
-    uint32_t timeout_;
-    std::stringstream ss_;
+    uint64_t timeout_;
+    std::basic_stringstream<char16_t> ss_;
 };
 } // namespace cppagent
 #endif // INC_CPPAGENT_READLINE_H_
