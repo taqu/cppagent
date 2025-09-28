@@ -41,7 +41,7 @@ public:
     ReadLine();
     ~ReadLine();
 
-    std::generator<std::tuple<ReadLineState, std::u16string>> read(Terminal& terminal, std::shared_ptr<Cancellation> cancel);
+    std::generator<std::tuple<ReadLineState, std::u8string>> read(Terminal& terminal, std::shared_ptr<Cancellation> cancel);
 private:
     ReadLine(const ReadLine&) = delete;
     ReadLine& operator=(const ReadLine&) = delete;

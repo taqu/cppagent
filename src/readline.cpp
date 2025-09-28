@@ -53,9 +53,9 @@ ReadLine::~ReadLine()
 {
 }
 
-std::generator<std::tuple<ReadLineState, std::u16string>> ReadLine::read(Terminal& terminal, std::shared_ptr<Cancellation> cancel)
+std::generator<std::tuple<ReadLineState, std::u8string>> ReadLine::read(Terminal& terminal, std::shared_ptr<Cancellation> cancel)
 {
-    static const std::u16string empty;
+    static const std::u8string empty;
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
     uint32_t acc = 0;
     static constexpr DWORD Size = 63;
@@ -113,7 +113,7 @@ std::generator<std::tuple<ReadLineState, std::u16string>> ReadLine::read(Termina
         } // for(uint32_t i=0
     } // while(acc < timeout_)
 READLINE_SUCCESS:
-    co_yield std::make_tuple(ReadLineState::Success, ss_.str());
+    co_yield std::make_tuple(ReadLineState::Success, uconv::utf16_to_utf8(ss_.str()));
 READLINE_FAIL:
     co_yield std::make_tuple(ReadLineState::Fail, empty);
 READLINE_CANCELED:

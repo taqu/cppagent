@@ -1,15 +1,15 @@
+#include "httplib.h"
+#include "log.h"
+#include "openaiprovider.h"
+#include "readline.h"
+#include "settings.h"
+#include "stringbuilder.h"
+#include "terminal.h"
+#include "tool.h"
+#include <replxx.hxx>
 #include <stdio.h>
 #include <string>
 #include <vector>
-#include "httplib.h"
-#include "settings.h"
-#include "tool.h"
-#include "stringbuilder.h"
-#include "openaiprovider.h"
-#include "terminal.h"
-#include <replxx.hxx>
-#include "log.h"
-#include "readline.h"
 
 int main(void)
 {
@@ -20,16 +20,21 @@ int main(void)
         printf("%d %s\n", res->status, res->body.c_str());
     }*/
     using namespace cppagent;
+    {
+        Terminal terminal;
+        std::u8string str = u8"あいうえお";
+        std::cout << reinterpret_cast<const char*>(str.c_str()) << std::endl;
+    }
     Log::initialize();
     LOG_INFO("test log {}", 1);
     {
         Terminal terminal;
         ReadLine readLine;
-        std::generator<std::tuple<ReadLineState, std::u16string>> gen = readLine.read(terminal, std::make_shared<Cancellation>());
+        std::generator<std::tuple<ReadLineState, std::u8string>> gen = readLine.read(terminal, std::make_shared<Cancellation>());
         int32_t count = 0;
         bool end = false;
         for(auto itr = gen.begin(); itr != gen.end() && !end; ++itr) {
-            std::tuple<ReadLineState, std::u16string> x = *itr;
+            std::tuple<ReadLineState, std::u8string> x = *itr;
             switch(std::get<0>(x)) {
             case ReadLineState::Success:
                 std::cout << "Success: " << reinterpret_cast<const char*>(std::get<1>(x).c_str()) << std::endl;
@@ -68,8 +73,8 @@ int main(void)
         OpenAIProvider provider("http://192.168.128.147:9090");
         IAPIProvider::ChatCompletionRequest request;
         request.messages_.push_back({"system", "You are a helpful assistant."});
-		request.messages_.push_back({"user", "Hello!!"});
-		IAPIProvider::ChatCompletionResponse response = provider.generate(request);
+        request.messages_.push_back({"user", "Hello!!"});
+        IAPIProvider::ChatCompletionResponse response = provider.generate(request);
     }*/
     {
         Terminal terminal;
@@ -77,24 +82,24 @@ int main(void)
         Vector position = terminal.getCursorPosition();
         {
             terminal << Terminal::Bold << Terminal::Red << "Bold Red" << Terminal::Reset << Terminal::endl;
-            terminal << Terminal::CursorPosition{0,position.y_} << Terminal::EraseLine{Erase::Entire} << Terminal::flush;
+            terminal << Terminal::CursorPosition{0, position.y_} << Terminal::EraseLine{Erase::Entire} << Terminal::flush;
         }
-        Terminal::CursorPosition inputPosition = {size.y_-1, 0};
+        Terminal::CursorPosition inputPosition = {size.y_ - 1, 0};
         int32_t count = 0;
         std::stringstream ss;
-        for(;;){
+        for(;;) {
             ss.str("");
             position = terminal.getCursorPosition();
-            terminal << Terminal::CursorPosition{position.y_+1,0};
+            terminal << Terminal::CursorPosition{position.y_ + 1, 0};
 
-            //terminal << inputPosition << ">";
+            // terminal << inputPosition << ">";
             terminal << ">";
             ss << "test" << count;
             std::string line = ss.str();
             std::cout << line << std::endl;
             ++count;
-            //terminal << Terminal::CursorPosition{position.y_,0} << Terminal::EraseLine{Erase::Entire};
-            //terminal << Terminal::CursorPosition{position.y_+1,0} << Terminal::EraseLine{Erase::Entire} << line << Terminal::flush;
+            // terminal << Terminal::CursorPosition{position.y_,0} << Terminal::EraseLine{Erase::Entire};
+            // terminal << Terminal::CursorPosition{position.y_+1,0} << Terminal::EraseLine{Erase::Entire} << line << Terminal::flush;
             Sleep(1000);
         }
     }
